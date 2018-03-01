@@ -1,9 +1,9 @@
 // RELUX ==================================
 // createStore
 
-// export const createStore = (reducer, state, middleware) => {
-//   // I have no idea what I'm doing
-// }
+export const createStore = (reducer, state, middleware) => {
+  // I have no idea what I'm doing
+};
 
 // applyMiddleware
 
