@@ -1,14 +1,14 @@
 {
-  "name": "hanhee_song_untapt",
+  "name": "Relux",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "sass": "node-sass scss -o styles",
+    "sass": "sass --watch scss:styles",
     "start": "webpack --watch",
     "watch": "webpack --watch",
-    "sass": "sass --watch scss:styles"
+    "reload": "reload -b"
   },
   "author": "Hanhee Song",
   "license": "ISC",
