@@ -18310,6 +18310,9 @@ var Store = function () {
   }, {
     key: "dispatch",
     value: function dispatch(action) {
+      if ((typeof action === "undefined" ? "undefined" : _typeof(action)) !== "object") {
+        throw "Dispatch expected an object, received: " + action;
+      }
       var newState = deepCopy(this.reducers);
       var mapReducersToState = function mapReducersToState(act, reducers, state) {
         Object.keys(reducers).forEach(function (key) {
@@ -18364,8 +18367,8 @@ var logger = exports.logger = function logger(dispatch, store) {
   // otherwise, we get bad recursion
   function newDispatch(action) {
     console.log("Previous state: ", store.state);
-    console.log("Action: ", action);
     dispatch(action);
+    console.log("Action: ", action);
     console.log("Next state: ", store.state);
   }
   return newDispatch;

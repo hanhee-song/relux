@@ -52,6 +52,9 @@ class Store {
   }
   
   dispatch(action) {
+    if (typeof action !== "object") {
+      throw `Dispatch expected an object, received: ${action}`;
+    }
     const newState = deepCopy(this.reducers);
     const mapReducersToState = (act, reducers, state) => {
       Object.keys(reducers).forEach(key => {
@@ -98,8 +101,8 @@ export const logger = (dispatch, store) => {
   // otherwise, we get bad recursion
   function newDispatch(action) {
     console.log("Previous state: ", store.state);
-    console.log("Action: ", action);
     dispatch(action);
+    console.log("Action: ", action);
     console.log("Next state: ", store.state);
   }
   return newDispatch;
