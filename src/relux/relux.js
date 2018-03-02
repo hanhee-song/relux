@@ -12,20 +12,35 @@ export const createStore = (reducer, state, middleware) => {
 // applyMiddleware
 
 // combineReducers
-
-export const combineReducers = (reducers) => {
-  // reducers = {
-  //   entities: entitiesReducer,
-  //   session: SessionReducer,
-  // }
+// v1.0. Don't ask.
+export const combineReducers = reducers => {
+  const verifyReducers = reducer => {
+    Object.keys(reducer).forEach(key => {
+      const val = reducer[key];
+      if (typeof val === "object" && Object.keys(val).length !== 0 && val.constructor === Object) {
+        verifyReducers(val);
+      } else {
+        if (typeof val === "undefined") {
+          throw `combineReducers received 'undefined' as the reducer for ${key}. Did you forget to import or export somewhere?`;
+        } else if (typeof val !== "function") {
+          throw `combineReducers received an invalid input for a reducer:
+          ${key}: ${JSON.stringify(val)}. Did you forget to export something?`;
+        }
+      }
+    });
+  };
+  verifyReducers(reducers);
+  return reducers;
 };
+
 
 // STORE ==============================================
 
 class Store {
   constructor(reducer, state, middleware) {
-    console.log(reducer);
     this.state = state;
+    this.reducers = reducer;
+    // this.middleware = middleware;
   }
   
   getState() {
@@ -33,14 +48,11 @@ class Store {
   }
   
   dispatch(action) {
+    debugger;
     console.log(action);
+    
   }
 }
-
-// // Writing like this just to make sure there are no hoisting issues
-// function dispatch(action) {
-//   console.log(action);
-// }
 
 // RELUX-THUNK ======================================
 // thunk
@@ -60,7 +72,7 @@ export const connect = (mapState, mapDispatch) => {
       try {
         mappedProps = Object.assign(
           mapState($store.getState(), ownProps),
-          mapDispatch($store.dispatch, ownProps)
+          mapDispatch($store.dispatch.bind($store), ownProps)
         );
       } catch (e) {
         if (e.toString() === "TypeError: Cannot read property 'getState' of undefined") {
@@ -75,9 +87,6 @@ export const connect = (mapState, mapDispatch) => {
     };
   };
 };
-
-// Possible error: if createStore is not invoked prior to attempting to connect,
-// $store will be undefined.
 
 // UTIL =============================================
 function deepCopy(o) {

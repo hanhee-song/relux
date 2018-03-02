@@ -18202,9 +18202,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.connect = exports.combineReducers = exports.createStore = undefined;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _react = __webpack_require__(3);
 
@@ -18228,12 +18228,24 @@ var createStore = exports.createStore = function createStore(reducer, state, mid
 // applyMiddleware
 
 // combineReducers
-
+// v1.0. Don't ask.
 var combineReducers = exports.combineReducers = function combineReducers(reducers) {
-  // reducers = {
-  //   entities: entitiesReducer,
-  //   session: SessionReducer,
-  // }
+  var verifyReducers = function verifyReducers(reducer) {
+    Object.keys(reducer).forEach(function (key) {
+      var val = reducer[key];
+      if ((typeof val === "undefined" ? "undefined" : _typeof(val)) === "object" && Object.keys(val).length !== 0 && val.constructor === Object) {
+        verifyReducers(val);
+      } else {
+        if (typeof val === "undefined") {
+          throw "combineReducers received 'undefined' as the reducer for " + key + ". Did you forget to import or export somewhere?";
+        } else if (typeof val !== "function") {
+          throw "combineReducers received an invalid input for a reducer:\n          " + key + ": " + JSON.stringify(val) + ". Did you forget to export something?";
+        }
+      }
+    });
+  };
+  verifyReducers(reducers);
+  return reducers;
 };
 
 // STORE ==============================================
@@ -18242,8 +18254,9 @@ var Store = function () {
   function Store(reducer, state, middleware) {
     _classCallCheck(this, Store);
 
-    console.log(reducer);
     this.state = state;
+    this.reducers = reducer;
+    // this.middleware = middleware;
   }
 
   _createClass(Store, [{
@@ -18254,17 +18267,13 @@ var Store = function () {
   }, {
     key: "dispatch",
     value: function dispatch(action) {
+      debugger;
       console.log(action);
     }
   }]);
 
   return Store;
 }();
-
-// // Writing like this just to make sure there are no hoisting issues
-// function dispatch(action) {
-//   console.log(action);
-// }
 
 // RELUX-THUNK ======================================
 // thunk
@@ -18282,7 +18291,7 @@ var connect = exports.connect = function connect(mapState, mapDispatch) {
       var mappedProps = void 0;
 
       try {
-        mappedProps = Object.assign(mapState($store.getState(), ownProps), mapDispatch($store.dispatch, ownProps));
+        mappedProps = Object.assign(mapState($store.getState(), ownProps), mapDispatch($store.dispatch.bind($store), ownProps));
       } catch (e) {
         if (e.toString() === "TypeError: Cannot read property 'getState' of undefined") {
           throw "- Store does not exist. You probably forgot to create it.";
@@ -18296,9 +18305,6 @@ var connect = exports.connect = function connect(mapState, mapDispatch) {
     };
   };
 };
-
-// Possible error: if createStore is not invoked prior to attempting to connect,
-// $store will be undefined.
 
 // UTIL =============================================
 function deepCopy(o) {
@@ -18381,16 +18387,16 @@ Object.defineProperty(exports, "__esModule", {
 
 var _relux = __webpack_require__(31);
 
-var _user_reducer = __webpack_require__(35);
+var _root_reducer = __webpack_require__(64);
 
-var _user_reducer2 = _interopRequireDefault(_user_reducer);
+var _root_reducer2 = _interopRequireDefault(_root_reducer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function () {
   var preloadedState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  return (0, _relux.createStore)(_user_reducer2.default, preloadedState);
+  return (0, _relux.createStore)(_root_reducer2.default, preloadedState);
 };
 
 /***/ }),
@@ -18422,6 +18428,140 @@ var UserReducer = function UserReducer() {
 };
 
 exports.default = UserReducer;
+
+/***/ }),
+/* 36 */,
+/* 37 */,
+/* 38 */,
+/* 39 */,
+/* 40 */,
+/* 41 */,
+/* 42 */,
+/* 43 */,
+/* 44 */,
+/* 45 */,
+/* 46 */,
+/* 47 */,
+/* 48 */,
+/* 49 */,
+/* 50 */,
+/* 51 */,
+/* 52 */,
+/* 53 */,
+/* 54 */,
+/* 55 */,
+/* 56 */,
+/* 57 */,
+/* 58 */,
+/* 59 */,
+/* 60 */,
+/* 61 */,
+/* 62 */,
+/* 63 */,
+/* 64 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _relux = __webpack_require__(31);
+
+var _entities_reducer = __webpack_require__(65);
+
+var _entities_reducer2 = _interopRequireDefault(_entities_reducer);
+
+var _session_reducer = __webpack_require__(67);
+
+var _session_reducer2 = _interopRequireDefault(_session_reducer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = (0, _relux.combineReducers)({
+  entities: _entities_reducer2.default,
+  session: _session_reducer2.default
+});
+
+/***/ }),
+/* 65 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _relux = __webpack_require__(31);
+
+var _channel_reducer = __webpack_require__(66);
+
+var _channel_reducer2 = _interopRequireDefault(_channel_reducer);
+
+var _user_reducer = __webpack_require__(35);
+
+var _user_reducer2 = _interopRequireDefault(_user_reducer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = (0, _relux.combineReducers)({
+  channels: _channel_reducer2.default,
+  users: _user_reducer2.default
+});
+
+/***/ }),
+/* 66 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var initialState = {};
+
+var ChannelReducer = function ChannelReducer() {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
+  var action = arguments[1];
+
+  Object.freeze(state);
+  switch (action.type) {
+    default:
+      return state;
+  }
+};
+
+exports.default = ChannelReducer;
+
+/***/ }),
+/* 67 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var initialState = {};
+
+var SessionReducer = function SessionReducer() {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
+  var action = arguments[1];
+
+  Object.freeze(state);
+  switch (action.type) {
+    default:
+      return state;
+  }
+};
+
+exports.default = SessionReducer;
 
 /***/ })
 /******/ ]);
