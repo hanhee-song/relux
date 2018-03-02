@@ -40,7 +40,7 @@ export const combineReducers = reducers => {
 // STORE ==============================================
 
 class Store {
-  constructor(reducer, state, middleware) {
+  constructor(reducer, state = {}, middleware = []) {
     this.state = state;
     this.reducers = reducer;
     this.middleware = middleware; // array
@@ -78,6 +78,11 @@ class Store {
   }
   
   _setUpMiddleware() {
+    if (typeof this.middleware === "function") {
+      throw `Relux expected an array of middleware, got: function ${this.middleware.name}. Did you forget to invoke applyMiddleware?`;
+    } else if (this.middleware.constructor !== Array) {
+      throw `Relux found an invalid array of middleware: ${this.middleware}. Did you forget to invoke applyMiddleware?`;
+    }
     this.middleware.forEach(middleware => {
       this.dispatch = middleware(this.dispatch.bind(this), this);
     });
@@ -108,6 +113,7 @@ const actionGroupStyle = 'color: grey';
 const prevStateStyle = 'color: grey; font-weight: 700';
 const actionStyle = 'color: #47b0ed; font-weight: 700';
 const nextStateStyle = 'color: #2ca032; font-weight: 700';
+
 export const logger = (dispatch, store) => {
   function newDispatch(action) {
     const startTime = new Date();
@@ -124,7 +130,7 @@ export const logger = (dispatch, store) => {
 };
 
 
-// REACT-REDUX =========================================
+// REACT-RELUX =========================================
 
 import React from 'react';
 
@@ -132,6 +138,18 @@ export const connect = (mapState, mapDispatch) => {
   return ReactComponent => {
     return ownProps => {
       let mappedProps;
+      
+      if (typeof mapState !== "function" && mapState !== null) {
+        throw `connect expected mapState to be a function or null, got ${mapState}. If you want to pass nothing in, please use "null".`;
+      }
+      if (typeof mapDispatch !== "function" && mapDispatch !== null) {
+        throw `connect expected mapDispatch to be a function or null, got ${mapDispatch}. If you want to pass nothing in, please use "null".`;
+      }
+      
+      // This is to prevent any errors related to mapState or mapDispatch
+      // being set to null
+      mapState = mapState === null ? () => new Object() : mapState;
+      mapDispatch = mapDispatch === null ? () => new Object() : mapDispatch;
       
       try {
         mappedProps = Object.assign(

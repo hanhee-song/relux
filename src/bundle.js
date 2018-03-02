@@ -784,7 +784,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 document.addEventListener("DOMContentLoaded", function () {
   var root = document.getElementById('root');
   var store = (0, _store2.default)();
-  _reactDom2.default.render(_react2.default.createElement(_App2.default, { store: store }), root);
+  _reactDom2.default.render(_react2.default.createElement(_App2.default, null), root);
 });
 
 /***/ }),
@@ -18292,7 +18292,10 @@ var combineReducers = exports.combineReducers = function combineReducers(reducer
 // STORE ==============================================
 
 var Store = function () {
-  function Store(reducer, state, middleware) {
+  function Store(reducer) {
+    var state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var middleware = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
     _classCallCheck(this, Store);
 
     this.state = state;
@@ -18338,6 +18341,11 @@ var Store = function () {
     value: function _setUpMiddleware() {
       var _this = this;
 
+      if (typeof this.middleware === "function") {
+        throw "Relux expected an array of middleware, got: function " + this.middleware.name + ". Did you forget to invoke applyMiddleware?";
+      } else if (this.middleware.constructor !== Array) {
+        throw "Relux found an invalid array of middleware: " + this.middleware + ". Did you forget to invoke applyMiddleware?";
+      }
       this.middleware.forEach(function (middleware) {
         _this.dispatch = middleware(_this.dispatch.bind(_this), _this);
       });
@@ -18369,6 +18377,7 @@ var actionGroupStyle = 'color: grey';
 var prevStateStyle = 'color: grey; font-weight: 700';
 var actionStyle = 'color: #47b0ed; font-weight: 700';
 var nextStateStyle = 'color: #2ca032; font-weight: 700';
+
 var logger = exports.logger = function logger(dispatch, store) {
   function newDispatch(action) {
     var startTime = new Date();
@@ -18384,12 +18393,28 @@ var logger = exports.logger = function logger(dispatch, store) {
   return newDispatch;
 };
 
-// REACT-REDUX =========================================
+// REACT-RELUX =========================================
 
 var connect = exports.connect = function connect(mapState, mapDispatch) {
   return function (ReactComponent) {
     return function (ownProps) {
       var mappedProps = void 0;
+
+      if (typeof mapState !== "function" && mapState !== null) {
+        throw "connect expected mapState to be a function or null, got " + mapState + ". If you want to pass nothing in, please use \"null\".";
+      }
+      if (typeof mapDispatch !== "function" && mapDispatch !== null) {
+        throw "connect expected mapDispatch to be a function or null, got " + mapDispatch + ". If you want to pass nothing in, please use \"null\".";
+      }
+
+      // This is to prevent any errors related to mapState or mapDispatch
+      // being set to null
+      mapState = mapState === null ? function () {
+        return new Object();
+      } : mapState;
+      mapDispatch = mapDispatch === null ? function () {
+        return new Object();
+      } : mapDispatch;
 
       try {
         mappedProps = Object.assign(mapState($store.getState(), ownProps), mapDispatch($store.dispatch.bind($store), ownProps));
