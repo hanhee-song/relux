@@ -18169,18 +18169,17 @@ var DispatchTest = function (_React$Component) {
   }
 
   _createClass(DispatchTest, [{
-    key: "handleClick",
+    key: 'handleClick',
     value: function handleClick(e) {
-      console.log("Click");
-      this.props.receiveCurrentUser({ name: "meow" });
+      this.props.receiveCurrentUser({ name: Math.random() });
     }
   }, {
-    key: "render",
+    key: 'render',
     value: function render() {
       return _react2.default.createElement(
-        "div",
+        'div',
         { onClick: this.handleClick },
-        "Click to test"
+        'Click to test'
       );
     }
   }]);
@@ -18267,8 +18266,26 @@ var Store = function () {
   }, {
     key: "dispatch",
     value: function dispatch(action) {
-      debugger;
-      console.log(action);
+      var newState = deepCopy(this.reducers);
+      var mapReducersToState = function mapReducersToState(act, reducers, state) {
+        Object.keys(reducers).forEach(function (key) {
+          var val = reducers[key];
+          var stateSlice = void 0;
+          try {
+            stateSlice = state[key];
+          } catch (e) {
+            stateSlice = undefined;
+          }
+          if (typeof val === "function") {
+            reducers[key] = val(stateSlice, act);
+          } else if ((typeof val === "undefined" ? "undefined" : _typeof(val)) === "object") {
+            mapReducersToState(act, val, stateSlice);
+          }
+        });
+      };
+      mapReducersToState(action, newState, this.state);
+      this.state = newState;
+      console.log(this.state);
     }
   }]);
 

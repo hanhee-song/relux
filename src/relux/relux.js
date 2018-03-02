@@ -48,9 +48,26 @@ class Store {
   }
   
   dispatch(action) {
-    debugger;
-    console.log(action);
-    
+    const newState = deepCopy(this.reducers);
+    const mapReducersToState = (act, reducers, state) => {
+      Object.keys(reducers).forEach(key => {
+        const val = reducers[key];
+        let stateSlice;
+          try {
+            stateSlice = state[key];
+          } catch (e) {
+            stateSlice = undefined;
+          }
+        if (typeof val === "function") {
+          reducers[key] = val(stateSlice, act);
+        } else if (typeof val === "object") {
+          mapReducersToState(act, val, stateSlice);
+        }
+      });
+    };
+    mapReducersToState(action, newState, this.state);
+    this.state = newState;
+    console.log(this.state);
   }
 }
 

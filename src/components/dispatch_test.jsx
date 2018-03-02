@@ -7,8 +7,7 @@ class DispatchTest extends React.Component {
   }
   
   handleClick(e) {
-    console.log("Click");
-    this.props.receiveCurrentUser({ name: "meow" });
+    this.props.receiveCurrentUser({ name: Math.random() });
   }
   
   render () {
