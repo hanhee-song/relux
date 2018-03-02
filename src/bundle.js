@@ -18370,12 +18370,13 @@ var nextStateStyle = 'color: #2ca032; font-weight: 700';
 var logger = exports.logger = function logger(dispatch, store) {
   function newDispatch(action) {
     var startTime = new Date();
+    var oldState = store.getState(); // getState is a deep copy
     dispatch(action);
     var endTime = new Date();
     console.group("%caction", actionGroupStyle, action.type, "@" + getTimeFromDate(endTime) + " (in " + (endTime - startTime) + " ms)");
-    console.log("%cPrev state: ", prevStateStyle, store.state);
+    console.log("%cPrev state: ", prevStateStyle, oldState);
     console.log("%cAction:     ", actionStyle, action);
-    console.log("%cNext state: ", nextStateStyle, store.state);
+    console.log("%cNext state: ", nextStateStyle, store.getState());
     console.groupEnd();
   }
   return newDispatch;
