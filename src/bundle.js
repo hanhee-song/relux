@@ -18233,7 +18233,7 @@ exports.default = DispatchTest;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.connect = exports.combineReducers = exports.createStore = undefined;
+exports.connect = exports.logger = exports.combineReducers = exports.applyMiddleware = exports.createStore = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -18259,9 +18259,17 @@ var createStore = exports.createStore = function createStore(reducer, state, mid
 };
 
 // applyMiddleware
+// v1.0. It basically returns its args as an array.
+var applyMiddleware = exports.applyMiddleware = function applyMiddleware() {
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  return args;
+};
 
 // combineReducers
-// v1.0. Don't ask.
+// v1.0. Don't ask. It basically returns its input.
 var combineReducers = exports.combineReducers = function combineReducers(reducers) {
   var verifyReducers = function verifyReducers(reducer) {
     Object.keys(reducer).forEach(function (key) {
@@ -18290,6 +18298,8 @@ var Store = function () {
     this.state = state;
     this.reducers = reducer;
     this.middleware = middleware; // array
+    this._setUpMiddleware();
+    this.dispatch({ type: "RELUX/INIT" });
   }
 
   _createClass(Store, [{
@@ -18319,7 +18329,15 @@ var Store = function () {
       };
       mapReducersToState(action, newState, this.state);
       this.state = newState;
-      console.log(this.state);
+    }
+  }, {
+    key: "_setUpMiddleware",
+    value: function _setUpMiddleware() {
+      var _this = this;
+
+      this.middleware.forEach(function (middleware) {
+        _this.dispatch = middleware(_this.dispatch.bind(_this), _this);
+      });
     }
   }]);
 
@@ -18333,9 +18351,19 @@ var Store = function () {
 // RELUX-LOGGER
 // logger
 
+var logger = exports.logger = function logger(dispatch, store) {
+  // We have to pass in the dispatch rather than using store's dispatch
+  // otherwise, we get bad recursion
+  function newDispatch(action) {
+    console.log("Previous state: ", store.state);
+    console.log("Action: ", action);
+    dispatch(action);
+    console.log("Next state: ", store.state);
+  }
+  return newDispatch;
+};
+
 // REACT-REDUX =========================================
-
-
 var connect = exports.connect = function connect(mapState, mapDispatch) {
   return function (ReactComponent) {
     return function (ownProps) {
@@ -18477,7 +18505,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 exports.default = function () {
   var preloadedState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  return (0, _relux.createStore)(_root_reducer2.default, preloadedState);
+  return (0, _relux.createStore)(_root_reducer2.default, preloadedState, (0, _relux.applyMiddleware)(_relux.logger));
 };
 
 /***/ }),

@@ -10,9 +10,11 @@ export const createStore = (reducer, state, middleware) => {
 };
 
 // applyMiddleware
+// v1.0. It basically returns its args as an array.
+export const applyMiddleware = (...args) => args;
 
 // combineReducers
-// v1.0. Don't ask.
+// v1.0. Don't ask. It basically returns its input.
 export const combineReducers = reducers => {
   const verifyReducers = reducer => {
     Object.keys(reducer).forEach(key => {
@@ -41,6 +43,8 @@ class Store {
     this.state = state;
     this.reducers = reducer;
     this.middleware = middleware; // array
+    this._setUpMiddleware();
+    this.dispatch({ type: "RELUX/INIT" });
   }
   
   getState() {
@@ -67,7 +71,12 @@ class Store {
     };
     mapReducersToState(action, newState, this.state);
     this.state = newState;
-    console.log(this.state);
+  }
+  
+  _setUpMiddleware() {
+    this.middleware.forEach(middleware => {
+      this.dispatch = middleware(this.dispatch.bind(this), this);
+    });
   }
 }
 
@@ -77,6 +86,18 @@ class Store {
 
 // RELUX-LOGGER
 // logger
+
+export const logger = (dispatch, store) => {
+  // We have to pass in the dispatch rather than using store's dispatch
+  // otherwise, we get bad recursion
+  function newDispatch(action) {
+    console.log("Previous state: ", store.state);
+    console.log("Action: ", action);
+    dispatch(action);
+    console.log("Next state: ", store.state);
+  }
+  return newDispatch;
+};
 
 // REACT-REDUX =========================================
 import React from 'react';
