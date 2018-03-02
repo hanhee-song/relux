@@ -7,6 +7,6 @@ export const fetchUser = (id) => {
   return new Promise(function(resolve, reject) {
     setTimeout(() => {
       resolve(user);
-    }, 300);
+    }, 1000);
   });
 };

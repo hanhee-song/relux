@@ -18233,7 +18233,7 @@ exports.default = DispatchTest;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.connect = exports.logger = exports.combineReducers = exports.applyMiddleware = exports.createStore = undefined;
+exports.connect = exports.logger = exports.thunk = exports.combineReducers = exports.applyMiddleware = exports.createStore = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -18345,12 +18345,20 @@ var Store = function () {
 }();
 
 // RELUX-THUNK ======================================
-// thunk
 
+
+var thunk = exports.thunk = function thunk(dispatch, store) {
+  function newDispatch(action) {
+    if (typeof action === "function") {
+      action(dispatch);
+    } else {
+      dispatch(action);
+    }
+  }
+  return newDispatch;
+};
 
 // RELUX-LOGGER
-// logger
-
 var logger = exports.logger = function logger(dispatch, store) {
   // We have to pass in the dispatch rather than using store's dispatch
   // otherwise, we get bad recursion
@@ -18477,8 +18485,8 @@ var receiveUser = exports.receiveUser = function receiveUser(user) {
 
 var fetchUser = exports.fetchUser = function fetchUser(id) {
   return function (dispatch) {
-    return UserApiUtil.fetchUser(id).then(function (success) {
-      return dispatch(receiveUser);
+    return UserApiUtil.fetchUser(id).then(function (user) {
+      return dispatch(receiveUser(user));
     });
   };
 };
@@ -18505,7 +18513,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 exports.default = function () {
   var preloadedState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  return (0, _relux.createStore)(_root_reducer2.default, preloadedState, (0, _relux.applyMiddleware)(_relux.logger));
+  return (0, _relux.createStore)(_root_reducer2.default, preloadedState, (0, _relux.applyMiddleware)(_relux.logger, _relux.thunk));
 };
 
 /***/ }),
@@ -18698,7 +18706,7 @@ var fetchUser = exports.fetchUser = function fetchUser(id) {
   return new Promise(function (resolve, reject) {
     setTimeout(function () {
       resolve(user);
-    }, 300);
+    }, 1000);
   });
 };
 

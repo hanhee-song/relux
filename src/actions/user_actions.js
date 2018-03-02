@@ -21,7 +21,7 @@ export const fetchUser = (id) => {
   return (dispatch) => {
     return UserApiUtil.fetchUser(id)
       .then(
-        success => dispatch(receiveUser)
+        user => dispatch(receiveUser(user))
       );
   };
 };

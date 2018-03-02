@@ -81,12 +81,18 @@ class Store {
 }
 
 // RELUX-THUNK ======================================
-// thunk
-
+export const thunk = (dispatch, store) => {
+  function newDispatch(action) {
+    if (typeof action === "function") {
+      action(dispatch);
+    } else {
+      dispatch(action);
+    }
+  }
+  return newDispatch;
+};
 
 // RELUX-LOGGER
-// logger
-
 export const logger = (dispatch, store) => {
   // We have to pass in the dispatch rather than using store's dispatch
   // otherwise, we get bad recursion
