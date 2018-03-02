@@ -40,7 +40,7 @@ class Store {
   constructor(reducer, state, middleware) {
     this.state = state;
     this.reducers = reducer;
-    // this.middleware = middleware;
+    this.middleware = middleware; // array
   }
   
   getState() {

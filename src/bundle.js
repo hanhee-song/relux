@@ -18164,22 +18164,56 @@ var DispatchTest = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (DispatchTest.__proto__ || Object.getPrototypeOf(DispatchTest)).call(this, props));
 
-    _this.handleClick = _this.handleClick.bind(_this);
+    _this.handleReceiveCurrentUser = _this.handleReceiveCurrentUser.bind(_this);
+    _this.handleReceiveUser = _this.handleReceiveUser.bind(_this);
+    _this.handleFetchUser = _this.handleFetchUser.bind(_this);
     return _this;
   }
 
   _createClass(DispatchTest, [{
-    key: 'handleClick',
-    value: function handleClick(e) {
-      this.props.receiveCurrentUser({ name: Math.random() });
+    key: 'handleReceiveCurrentUser',
+    value: function handleReceiveCurrentUser(e) {
+      var user = {
+        id: Math.floor(Math.random() * 100),
+        name: Math.random()
+      };
+      this.props.receiveCurrentUser(user);
+    }
+  }, {
+    key: 'handleReceiveUser',
+    value: function handleReceiveUser(e) {
+      var user = {
+        id: Math.floor(Math.random() * 100),
+        name: Math.random()
+      };
+      this.props.receiveUser(user);
+    }
+  }, {
+    key: 'handleFetchUser',
+    value: function handleFetchUser(e) {
+      this.props.fetchUser(23);
     }
   }, {
     key: 'render',
     value: function render() {
       return _react2.default.createElement(
         'div',
-        { onClick: this.handleClick },
-        'Click to test'
+        null,
+        _react2.default.createElement(
+          'div',
+          { onClick: this.handleReceiveCurrentUser },
+          'receiveCurrentUser'
+        ),
+        _react2.default.createElement(
+          'div',
+          { onClick: this.handleReceiveUser },
+          'receiveUser'
+        ),
+        _react2.default.createElement(
+          'div',
+          { onClick: this.handleFetchUser },
+          'fetchUser'
+        )
       );
     }
   }]);
@@ -18255,7 +18289,7 @@ var Store = function () {
 
     this.state = state;
     this.reducers = reducer;
-    // this.middleware = middleware;
+    this.middleware = middleware; // array
   }
 
   _createClass(Store, [{
@@ -18365,6 +18399,12 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch, ownProps) {
   return {
     receiveCurrentUser: function receiveCurrentUser(user) {
       return dispatch((0, _user_actions.receiveCurrentUser)(user));
+    },
+    receiveUser: function receiveUser(user) {
+      return dispatch((0, _user_actions.receiveUser)(user));
+    },
+    fetchUser: function fetchUser(id) {
+      return dispatch((0, _user_actions.fetchUser)(id));
     }
   };
 };
@@ -18382,12 +18422,36 @@ exports.default = (0, _relux.connect)(mapStateToProps, mapDispatchToProps)(_disp
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.fetchUser = exports.receiveUser = exports.receiveCurrentUser = exports.RECEIVE_USER = exports.RECEIVE_CURRENT_USER = undefined;
+
+var _user_api_util = __webpack_require__(68);
+
+var UserApiUtil = _interopRequireWildcard(_user_api_util);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 var RECEIVE_CURRENT_USER = exports.RECEIVE_CURRENT_USER = "RECEIVE_CURRENT_USER";
+var RECEIVE_USER = exports.RECEIVE_USER = "RECEIVE_USER";
 
 var receiveCurrentUser = exports.receiveCurrentUser = function receiveCurrentUser(user) {
   return {
     type: RECEIVE_CURRENT_USER,
     user: user
+  };
+};
+
+var receiveUser = exports.receiveUser = function receiveUser(user) {
+  return {
+    type: RECEIVE_USER,
+    user: user
+  };
+};
+
+var fetchUser = exports.fetchUser = function fetchUser(id) {
+  return function (dispatch) {
+    return UserApiUtil.fetchUser(id).then(function (success) {
+      return dispatch(receiveUser);
+    });
   };
 };
 
@@ -18436,9 +18500,11 @@ var UserReducer = function UserReducer() {
   var action = arguments[1];
 
   Object.freeze(state);
+  var newState = Object.assign({}, state);
   switch (action.type) {
-    case _user_actions.RECEIVE_CURRENT_USER:
-      return action.user;
+    case _user_actions.RECEIVE_USER:
+      newState[action.user.id] = action.user;
+      return newState;
     default:
       return state;
   }
@@ -18565,6 +18631,9 @@ exports.default = ChannelReducer;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _user_actions = __webpack_require__(33);
+
 var initialState = {};
 
 var SessionReducer = function SessionReducer() {
@@ -18573,12 +18642,37 @@ var SessionReducer = function SessionReducer() {
 
   Object.freeze(state);
   switch (action.type) {
+    case _user_actions.RECEIVE_CURRENT_USER:
+      return action.user;
     default:
       return state;
   }
 };
 
 exports.default = SessionReducer;
+
+/***/ }),
+/* 68 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var fetchUser = exports.fetchUser = function fetchUser(id) {
+  // Spoof a user and an async ajax call
+  var user = {
+    id: id,
+    name: Math.random()
+  };
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      resolve(user);
+    }, 300);
+  });
+};
 
 /***/ })
 /******/ ]);
