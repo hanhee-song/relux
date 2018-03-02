@@ -1,9 +1,9 @@
 import { createStore } from '../relux/relux';
-import UserReducer from '../reducers/user_reducer';
+import RootReducer from '../reducers/root_reducer';
 
 export default (preloadedState = {}) => {
   return createStore(
-    UserReducer,
+    RootReducer,
     preloadedState
   );
 };
