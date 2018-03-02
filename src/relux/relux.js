@@ -84,6 +84,9 @@ class Store {
 }
 
 // RELUX-THUNK ======================================
+// For all thunks, we have to pass in the dispatch rather than using
+// store's dispatch. Otherwise, we get bad recursion
+
 export const thunk = (dispatch, store) => {
   function newDispatch(action) {
     if (typeof action === "function") {
@@ -96,14 +99,20 @@ export const thunk = (dispatch, store) => {
 };
 
 // RELUX-LOGGER
+const actionGroupStyle = 'color: grey';
+const prevStateStyle = 'color: grey; font-weight: 700';
+const actionStyle = 'color: #47b0ed; font-weight: 700';
+const nextStateStyle = 'color: #2ca032; font-weight: 700';
 export const logger = (dispatch, store) => {
-  // We have to pass in the dispatch rather than using store's dispatch
-  // otherwise, we get bad recursion
   function newDispatch(action) {
-    console.log("Previous state: ", store.state);
+    const startTime = new Date();
     dispatch(action);
-    console.log("Action: ", action);
-    console.log("Next state: ", store.state);
+    const endTime = new Date();
+    console.group("%caction", actionGroupStyle, action.type, `@${getTimeFromDate(endTime)} (in ${endTime - startTime} ms)`);
+    console.log("%cPrev state: ", prevStateStyle, store.state);
+    console.log("%cAction:     ", actionStyle, action);
+    console.log("%cNext state: ", nextStateStyle, store.state);
+    console.groupEnd();
   }
   return newDispatch;
 };
@@ -144,4 +153,15 @@ function deepCopy(o) {
     output[key] = (typeof v === "object") ? deepCopy(v) : v;
   }
   return output;
+}
+
+function getTimeFromDate(date) {
+  let hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+  let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+  let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+  let milliseconds = date.getMilliseconds().toString();
+  while (milliseconds.length < 3) {
+    milliseconds = 0 + milliseconds;
+  }
+  return `${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
