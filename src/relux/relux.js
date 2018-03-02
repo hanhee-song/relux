@@ -1,19 +1,20 @@
 // ONE GLOBAL VARIABLE TO RULE THEM ALL
 let $store;
 
-// RELUX ==================================
-// createStore
 
+// RELUX ==================================
+
+// createStore ==========
 export const createStore = (reducer, state, middleware) => {
   $store = new Store(reducer, state, middleware);
   return $store;
 };
 
-// applyMiddleware
+// applyMiddleware =========
 // v1.0. It basically returns its args as an array.
 export const applyMiddleware = (...args) => args;
 
-// combineReducers
+// combineReducers ============
 // v1.0. Don't ask. It basically returns its input.
 export const combineReducers = reducers => {
   const verifyReducers = reducer => {
@@ -83,7 +84,9 @@ class Store {
   }
 }
 
+
 // RELUX-THUNK ======================================
+
 // For all thunks, we have to pass in the dispatch rather than using
 // store's dispatch. Otherwise, we get bad recursion
 
@@ -98,7 +101,9 @@ export const thunk = (dispatch, store) => {
   return newDispatch;
 };
 
-// RELUX-LOGGER
+
+// RELUX-LOGGER ========================================
+
 const actionGroupStyle = 'color: grey';
 const prevStateStyle = 'color: grey; font-weight: 700';
 const actionStyle = 'color: #47b0ed; font-weight: 700';
@@ -110,15 +115,17 @@ export const logger = (dispatch, store) => {
     dispatch(action);
     const endTime = new Date();
     console.group("%caction", actionGroupStyle, action.type, `@${getTimeFromDate(endTime)} (in ${endTime - startTime} ms)`);
-    console.log("%cPrev state: ", prevStateStyle, oldState);
-    console.log("%cAction:     ", actionStyle, action);
-    console.log("%cNext state: ", nextStateStyle, store.getState());
+    console.log("%cprev state: ", prevStateStyle, oldState);
+    console.log("%caction:     ", actionStyle, action);
+    console.log("%cnext state: ", nextStateStyle, store.getState());
     console.groupEnd();
   }
   return newDispatch;
 };
 
+
 // REACT-REDUX =========================================
+
 import React from 'react';
 
 export const connect = (mapState, mapDispatch) => {
@@ -145,7 +152,9 @@ export const connect = (mapState, mapDispatch) => {
   };
 };
 
+
 // UTIL =============================================
+
 function deepCopy(o) {
   let output, v, key;
   output = Array.isArray(o) ? [] : {};

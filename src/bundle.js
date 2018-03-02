@@ -18251,14 +18251,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var $store = void 0;
 
 // RELUX ==================================
-// createStore
 
+// createStore ==========
 var createStore = exports.createStore = function createStore(reducer, state, middleware) {
   $store = new Store(reducer, state, middleware);
   return $store;
 };
 
-// applyMiddleware
+// applyMiddleware =========
 // v1.0. It basically returns its args as an array.
 var applyMiddleware = exports.applyMiddleware = function applyMiddleware() {
   for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
@@ -18268,7 +18268,7 @@ var applyMiddleware = exports.applyMiddleware = function applyMiddleware() {
   return args;
 };
 
-// combineReducers
+// combineReducers ============
 // v1.0. Don't ask. It basically returns its input.
 var combineReducers = exports.combineReducers = function combineReducers(reducers) {
   var verifyReducers = function verifyReducers(reducer) {
@@ -18348,6 +18348,7 @@ var Store = function () {
 }();
 
 // RELUX-THUNK ======================================
+
 // For all thunks, we have to pass in the dispatch rather than using
 // store's dispatch. Otherwise, we get bad recursion
 
@@ -18362,7 +18363,8 @@ var thunk = exports.thunk = function thunk(dispatch, store) {
   return newDispatch;
 };
 
-// RELUX-LOGGER
+// RELUX-LOGGER ========================================
+
 var actionGroupStyle = 'color: grey';
 var prevStateStyle = 'color: grey; font-weight: 700';
 var actionStyle = 'color: #47b0ed; font-weight: 700';
@@ -18374,15 +18376,16 @@ var logger = exports.logger = function logger(dispatch, store) {
     dispatch(action);
     var endTime = new Date();
     console.group("%caction", actionGroupStyle, action.type, "@" + getTimeFromDate(endTime) + " (in " + (endTime - startTime) + " ms)");
-    console.log("%cPrev state: ", prevStateStyle, oldState);
-    console.log("%cAction:     ", actionStyle, action);
-    console.log("%cNext state: ", nextStateStyle, store.getState());
+    console.log("%cprev state: ", prevStateStyle, oldState);
+    console.log("%caction:     ", actionStyle, action);
+    console.log("%cnext state: ", nextStateStyle, store.getState());
     console.groupEnd();
   }
   return newDispatch;
 };
 
 // REACT-REDUX =========================================
+
 var connect = exports.connect = function connect(mapState, mapDispatch) {
   return function (ReactComponent) {
     return function (ownProps) {
@@ -18405,6 +18408,7 @@ var connect = exports.connect = function connect(mapState, mapDispatch) {
 };
 
 // UTIL =============================================
+
 function deepCopy(o) {
   var output = void 0,
       v = void 0,
