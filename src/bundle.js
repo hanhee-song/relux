@@ -18400,6 +18400,10 @@ var connect = exports.connect = function connect(mapState, mapDispatch) {
     return function (ownProps) {
       var mappedProps = void 0;
 
+      if (typeof ReactComponent !== "function") {
+        throw "The function returned by connect expected a Component, got: " + (typeof ReactComponent === "undefined" ? "undefined" : _typeof(ReactComponent)) + " " + ReactComponent;
+      }
+
       if (typeof mapState !== "function" && mapState !== null) {
         throw "connect expected mapState to be a function or null, got " + mapState + ". If you want to pass nothing in, please use \"null\".";
       }

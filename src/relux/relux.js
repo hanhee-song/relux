@@ -134,42 +134,41 @@ export const logger = (dispatch, store) => {
 
 import React from 'react';
 
-export const connect = (mapState, mapDispatch) => {
-  return ReactComponent => {
-    return ownProps => {
-      let mappedProps;
-      
-      if (typeof mapState !== "function" && mapState !== null) {
-        throw `connect expected mapState to be a function or null, got ${mapState}. If you want to pass nothing in, please use "null".`;
-      }
-      if (typeof mapDispatch !== "function" && mapDispatch !== null) {
-        throw `connect expected mapDispatch to be a function or null, got ${mapDispatch}. If you want to pass nothing in, please use "null".`;
-      }
-      
-      // This is to prevent any errors related to mapState or mapDispatch
-      // being set to null
-      mapState = mapState === null ? () => new Object() : mapState;
-      mapDispatch = mapDispatch === null ? () => new Object() : mapDispatch;
-      
-      try {
-        mappedProps = Object.assign(
-          mapState($store.getState(), ownProps),
-          mapDispatch($store.dispatch.bind($store), ownProps)
-        );
-      } catch (e) {
-        if (e.toString() === "TypeError: Cannot read property 'getState' of undefined") {
-          throw "- Store does not exist. You probably forgot to create it.";
-        } else {
-          console.log(e);
-        }
-      }
-      
-      const finalProps = Object.assign({}, ownProps, mappedProps);
-      return <ReactComponent {...finalProps} />;
-    };
-  };
+export const connect = (mapState, mapDispatch) => ReactComponent => ownProps => {
+  let mappedProps;
+  
+  if (typeof ReactComponent !== "function") {
+    throw `The function returned by connect expected a Component, got: ${typeof ReactComponent} ${ReactComponent}`;
+  }
+  
+  if (typeof mapState !== "function" && mapState !== null) {
+    throw `connect expected mapState to be a function or null, got ${mapState}. If you want to pass nothing in, please use "null".`;
+  }
+  if (typeof mapDispatch !== "function" && mapDispatch !== null) {
+    throw `connect expected mapDispatch to be a function or null, got ${mapDispatch}. If you want to pass nothing in, please use "null".`;
+  }
+  
+  // This is to prevent any errors related to mapState or mapDispatch
+  // being set to null
+  mapState = mapState === null ? () => new Object() : mapState;
+  mapDispatch = mapDispatch === null ? () => new Object() : mapDispatch;
+  
+  try {
+    mappedProps = Object.assign(
+      mapState($store.getState(), ownProps),
+      mapDispatch($store.dispatch.bind($store), ownProps)
+    );
+  } catch (e) {
+    if (e.toString() === "TypeError: Cannot read property 'getState' of undefined") {
+      throw "- Store does not exist. You probably forgot to create it.";
+    } else {
+      console.log(e);
+    }
+  }
+  
+  const finalProps = Object.assign({}, ownProps, mappedProps);
+  return <ReactComponent {...finalProps} />;
 };
-
 
 // UTIL =============================================
 
