@@ -1,0 +1,111 @@
+## Relux Example
+
+This is the current spoofed React framework that I'm using to develop Relux. Relux can be found in ```src/relux```.
+
+# Relux Core
+
+Relux is a state management system modeled after Redux. I coded the core codebase in a short 24 hours to challenge and test my meta knowledge. It can be used in virtually the exact same way that Redux is used with one core convenience tweak that removes the need to pass the store down through React components.
+
+### API
+
+Relux comes with many of Redux's core features, including:
+
+#### ```createStore(reducer[, state, middleware])```
+
+This function will create a new store.
+
+Unlike Redux - which instantiates a store that needs to be passed around to React components - the current iteration of Relux will internally instantiate a store instance. This has two primary side effects:
+- Only one instance of Store can be created. This should not be a problem for most front-end setups which use one store anyways.
+- Store does not need to be passed down into React components. This means that we have no need for ```Provider``` to pass the store down to its children. Thus, the App can be created without the store like this:
+
+```JavaScript
+document.addEventListener("DOMContentLoaded", () => {
+  const root = document.getElementById('root');
+  const store = configureStore();
+  ReactDOM.render(<App />, root);
+});
+```
+
+#### ```applyMiddleware([arg1, arg2, ...])```
+
+When using middleware, this function should wrap the middleware as the third argument in createStore. Example:
+```JavaScript
+export default (preloadedState = {}) => {
+  return createStore(
+    RootReducer,
+    preloadedState,
+    applyMiddleware(logger, thunk)
+  );
+};
+```
+
+#### ```combineReducers(reducers)```
+
+Takes in an Object with reducers. Example:
+```JavaScript
+export default combineReducers({
+  entities: entitiesReducer,
+  session: sessionReducer
+});
+```
+
+## Relux-Thunk
+
+#### ```thunk```
+
+Similarly to Redux-Thunk, Thunk is a middleware that enables Relux to optionally accommodate an async action that returns a promise, most commonly in the case of AJAX calls. Example:
+```JavaScript
+// Without thunk, you can only do:
+export const receiveUser = user => ({
+  type: RECEIVE_USER,
+  user
+});
+
+// With thunk, you can also send an async action:
+export const fetchUser = id => dispatch => {
+  return UserApiUtil.fetchUser(id)
+    .then(
+      user => dispatch(receiveUser(user))
+    )
+}
+```
+
+## Relux-Logger
+
+#### ```logger```
+
+Logger is middleware that can show the previous state, action, next state, and relevant timestamps every time an action is fired.
+
+NB: when using multiple middleware, ```logger``` should be the first argument passed into ```applyMiddleware```.
+
+![Sample image of logger](https://i.imgur.com/AvkhIVw.png)
+
+## React-Relux
+
+#### ```connect(mapStateToProps, mapDispatchToProps)```
+
+Takes in two functions and returns a function. The returned function must be invoked with the react component that is to receive the props. If you don't need one of the two arguments, pass in the keyword ```null``` instead of ```undefined```.
+
+* ```mapStateToProps(state, props)```: returns an object with key-value pairs that further define props on the React component based on the Store's state.
+* ```mapDispatchToProps(dispatch, props)```: returns an object with key-value pairs that define dispatchable actions to be props of the React component.
+
+Example:
+```JavaScript
+const mapStateToProps = (state, ownProps) => {
+  return {
+    channels: Object.values(state.entities.channels),
+    dropdown: state.ui.dropdown,
+  };
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    clearDropdown: () => dispatch(clearDropdown()),
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ChannelIndex);
+```
