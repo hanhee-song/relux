@@ -3,7 +3,6 @@ import React from 'react';
 class DispatchTest extends React.Component {
   constructor(props) {
     super(props);
-    debugger;
     this.handleClick = this.handleClick.bind(this);
   }
   

@@ -1,4 +1,4 @@
-import { createStore } from '/relux/relux';
+import { createStore } from '../relux/relux';
 import UserReducer from '../reducers/user_reducer';
 
 export default (preloadedState = {}) => {

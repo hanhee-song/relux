@@ -775,11 +775,16 @@ var _App = __webpack_require__(26);
 
 var _App2 = _interopRequireDefault(_App);
 
+var _store = __webpack_require__(34);
+
+var _store2 = _interopRequireDefault(_store);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 document.addEventListener("DOMContentLoaded", function () {
   var root = document.getElementById('root');
-  _reactDom2.default.render(_react2.default.createElement(_App2.default, null), root);
+  var store = (0, _store2.default)();
+  _reactDom2.default.render(_react2.default.createElement(_App2.default, { store: store }), root);
 });
 
 /***/ }),
@@ -18159,7 +18164,6 @@ var DispatchTest = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (DispatchTest.__proto__ || Object.getPrototypeOf(DispatchTest)).call(this, props));
 
-    debugger;
     _this.handleClick = _this.handleClick.bind(_this);
     return _this;
   }
@@ -18198,17 +18202,27 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.connect = exports.combineReducers = exports.createStore = undefined;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _react = __webpack_require__(3);
 
 var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// ONE GLOBAL VARIABLE TO RULE THEM ALL
+var $store = void 0;
+
 // RELUX ==================================
 // createStore
 
 var createStore = exports.createStore = function createStore(reducer, state, middleware) {
-  // I have no idea what I'm doing
+  $store = new Store(reducer, state, middleware);
+  return $store;
 };
 
 // applyMiddleware
@@ -18222,6 +18236,36 @@ var combineReducers = exports.combineReducers = function combineReducers(reducer
   // }
 };
 
+// STORE ==============================================
+
+var Store = function () {
+  function Store(reducer, state, middleware) {
+    _classCallCheck(this, Store);
+
+    console.log(reducer);
+    this.state = state;
+  }
+
+  _createClass(Store, [{
+    key: "getState",
+    value: function getState() {
+      return deepCopy(this.state);
+    }
+  }, {
+    key: "dispatch",
+    value: function dispatch(action) {
+      console.log(action);
+    }
+  }]);
+
+  return Store;
+}();
+
+// // Writing like this just to make sure there are no hoisting issues
+// function dispatch(action) {
+//   console.log(action);
+// }
+
 // RELUX-THUNK ======================================
 // thunk
 
@@ -18230,18 +18274,44 @@ var combineReducers = exports.combineReducers = function combineReducers(reducer
 // logger
 
 // REACT-REDUX =========================================
+
+
 var connect = exports.connect = function connect(mapState, mapDispatch) {
   return function (ReactComponent) {
-    return function (props) {
-      var state = void 0; // TODO: let it take in STATE from STORE
-      var mappedProps = Object.assign(mapState(state, props), // This can take in state and props
-      mapDispatch(state, props));
-      // return new ReactComponent(Object.assign({}, props, mappedProps));
-      var finalProps = Object.assign({}, props, mappedProps);
+    return function (ownProps) {
+      var mappedProps = void 0;
+
+      try {
+        mappedProps = Object.assign(mapState($store.getState(), ownProps), mapDispatch($store.dispatch, ownProps));
+      } catch (e) {
+        if (e.toString() === "TypeError: Cannot read property 'getState' of undefined") {
+          throw "- Store does not exist. You probably forgot to create it.";
+        } else {
+          console.log(e);
+        }
+      }
+
+      var finalProps = Object.assign({}, ownProps, mappedProps);
       return _react2.default.createElement(ReactComponent, finalProps);
     };
   };
 };
+
+// Possible error: if createStore is not invoked prior to attempting to connect,
+// $store will be undefined.
+
+// UTIL =============================================
+function deepCopy(o) {
+  var output = void 0,
+      v = void 0,
+      key = void 0;
+  output = Array.isArray(o) ? [] : {};
+  for (key in o) {
+    v = o[key];
+    output[key] = (typeof v === "undefined" ? "undefined" : _typeof(v)) === "object" ? deepCopy(v) : v;
+  }
+  return output;
+}
 
 /***/ }),
 /* 32 */
@@ -18297,6 +18367,61 @@ var receiveCurrentUser = exports.receiveCurrentUser = function receiveCurrentUse
     user: user
   };
 };
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _relux = __webpack_require__(31);
+
+var _user_reducer = __webpack_require__(35);
+
+var _user_reducer2 = _interopRequireDefault(_user_reducer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function () {
+  var preloadedState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  return (0, _relux.createStore)(_user_reducer2.default, preloadedState);
+};
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _user_actions = __webpack_require__(33);
+
+var initialState = {};
+
+var UserReducer = function UserReducer() {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
+  var action = arguments[1];
+
+  Object.freeze(state);
+  switch (action.type) {
+    case _user_actions.RECEIVE_CURRENT_USER:
+      return action.user;
+    default:
+      return state;
+  }
+};
+
+exports.default = UserReducer;
 
 /***/ })
 /******/ ]);
