@@ -15,7 +15,7 @@ Relux comes with many of Redux's core features, including:
 This function will create a new store.
 
 Unlike Redux - which instantiates a store that needs to be passed around to React components - the current iteration of Relux will internally instantiate a store instance. This has two primary side effects:
-- Only one instance of Store can be created. This should not be a problem for most front-end setups which use one store anyways.
+- Only one instance of Store can be created. This shouldn't be a problem, since Redux was originally intended to be used with one instance anyways.
 - Store does not need to be passed down into React components. This means that we have no need for ```Provider``` to pass the store down to its children. Thus, the App can be created without the store like this:
 
 ```JavaScript
@@ -38,6 +38,7 @@ export default (preloadedState = {}) => {
   );
 };
 ```
+Note: applyMiddleware simply arrayifies its inputs as an array. In the above example, ```[logger, thunk]``` would have been a perfectly fine third argument.
 
 #### ```combineReducers(reducers)```
 
@@ -47,6 +48,16 @@ export default combineReducers({
   entities: entitiesReducer,
   session: sessionReducer
 });
+```
+Note: combineReducers merely checks that its values are all valid reducers. In the above example, exporting the object itself would have had the same effect without the validity check. Furthermore, combineReducers can be used at the root reducer level and still recursively check all sub-reducers for validity. This enables us to be show the state shape in a simple and explicit manner as follows:
+```JavaScript
+const rootReducer = combineReducers({
+  entities: {
+    users: UsersReducer,
+    Channels: ChannelsReducer,
+  },
+  session: SessionReducer,
+})
 ```
 
 ## Relux-Thunk
@@ -74,11 +85,11 @@ export const fetchUser = id => dispatch => {
 
 #### ```logger```
 
-Logger is middleware that can show the previous state, action, next state, and relevant timestamps every time an action is fired.
+Logger is middleware that can show the previous state, action, next state, and relevant timestamps every time an action is fired. A sample picture is provided below:
+
+<img src="https://i.imgur.com/AvkhIVw.png" alt="Drawing" style="width: 400px;"/>
 
 NB: when using multiple middleware, ```logger``` should be the first argument passed into ```applyMiddleware```.
-
-![Sample image of logger](https://i.imgur.com/AvkhIVw.png)
 
 ## React-Relux
 
