@@ -189,7 +189,8 @@ export const connect = (mapState, mapDispatch) => ReactComponent => ownProps => 
   }
   
   const finalProps = Object.assign({}, ownProps, mappedProps);
-  return <ReactComponent {...finalProps} />;
+  return React.createElement(ReactComponent, finalProps);
+  // return <ReactComponent {...finalProps} />;
 };
 
 // UTIL =============================================
