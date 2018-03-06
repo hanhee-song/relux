@@ -18247,6 +18247,28 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// =================================
+
+// TODO: createStore should throw if $store is already created
+
+// TODO: make a boilerplate reducer that takes in an object and
+// maps them to certain internal actions, like:
+// defaultReducer({
+//   reducerName: nameOfReducer,
+//   initialState: {},
+//   type: (single/index), // think of it as session/currentUser (1) vs entities/users (many)
+//   receiveOne: action,
+//   receiveAll: action,
+//   deleteOne: action,
+//   clearAll: [action, action]
+//   or maybe they should be [replace, assign, merge, delete, clear]
+// });
+// We should figure out how to make it extremely customizable,
+// and maybe allow for integration with more advanced reducer actions
+// outside of cookie-cutter merges and overwrites
+
+// =================================
+
 // ONE GLOBAL VARIABLE TO RULE THEM ALL
 var $store = void 0;
 
@@ -18254,6 +18276,9 @@ var $store = void 0;
 
 // createStore ==========
 var createStore = exports.createStore = function createStore(reducer, state, middleware) {
+  if ($store) {
+    throw "createStore has already been invoked, cannot be invoked more than once.";
+  }
   $store = new Store(reducer, state, middleware);
   return $store;
 };
