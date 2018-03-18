@@ -4,7 +4,7 @@ This is the current spoofed React framework that I'm using to develop Relux. Rel
 
 # Relux Core
 
-Relux is a state management system modeled after Redux. I coded the core codebase in a short 24 hours to challenge and test my meta knowledge. It can be used in virtually the exact same way that Redux is used with one core convenience tweak that removes the need to pass the store down through React components.
+Relux is a state management system modeled after Redux. I coded the core codebase in a short 24 hours to challenge and test my meta knowledge. It can be used in virtually the exact same way that Redux is used with multiple enhancements that cut down on overall boilerplate code.
 
 ### API
 
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 ```
 
-#### ```applyMiddleware([arg1, arg2, ...])```
+#### ```applyMiddleware([arg1, arg2, ...])``` (optional)
 
 When using middleware, this function should wrap the middleware as the third argument in createStore. Example:
 ```JavaScript
@@ -38,26 +38,41 @@ export default (preloadedState = {}) => {
   );
 };
 ```
-Note: applyMiddleware simply arrayifies its inputs as an array. In the above example, ```[logger, thunk]``` would have been a perfectly fine third argument.
+NB: this function merely exists to follow the Redux convention but is not necessary. The following code is just as valid:
+```JavaScript
+export default (preloadedState = {}) => {
+  return createStore(
+    RootReducer,
+    preloadedState,
+    [logger, thunk]
+  );
+};
+```
 
-#### ```combineReducers(reducers)```
+#### ```combineReducers(reducers)``` (optional)
 
 Takes in an Object with reducers. Example:
 ```JavaScript
-export default combineReducers({
+const rootReducer = combineReducers({
   entities: entitiesReducer,
   session: sessionReducer
 });
 ```
-Note: combineReducers merely checks that its values are all valid reducers. In the above example, exporting the object itself would have had the same effect without the validity check. Furthermore, combineReducers can be used at the root reducer level and still recursively check all sub-reducers for validity. This enables us to be show the state shape in a simple and explicit manner as follows:
+Note: combineReducers merely checks that its values are all valid reducers. In the above example, exporting the object itself would have had the same effect without the validity check. Furthermore, combineReducers can be used at the root reducer level (if at all) and still recursively check all sub-reducers for validity. This enables us to be show the state shape in a simple and explicit manner as follows:
 ```JavaScript
-const rootReducer = combineReducers({
+const rootReducer = {
   entities: {
-    users: UsersReducer,
-    Channels: ChannelsReducer,
+    users: UserReducer,
+    Channels: ChannelReducer,
   },
   session: SessionReducer,
-})
+  ui: {
+    modal: ModalReducer,
+    settings: {
+      server: ServerSettingsReducer
+    }
+  }
+}
 ```
 
 ## Relux-Thunk
@@ -66,7 +81,7 @@ const rootReducer = combineReducers({
 
 Similarly to Redux-Thunk, Thunk is a middleware that enables Relux to optionally accommodate an async action that returns a promise, most commonly in the case of AJAX calls. Example:
 ```JavaScript
-// Without thunk, you can only do:
+// Without thunk, you can only dispatch:
 export const receiveUser = user => ({
   type: RECEIVE_USER,
   user
@@ -74,10 +89,11 @@ export const receiveUser = user => ({
 
 // With thunk, you can also send an async action:
 export const fetchUser = id => dispatch => {
-  return UserApiUtil.fetchUser(id)
-    .then(
-      user => dispatch(receiveUser(user))
-    )
+  return fetch(
+    // ...
+  ).then(
+    user => dispatch(receiveUser(user))
+  )
 }
 ```
 
@@ -87,7 +103,7 @@ export const fetchUser = id => dispatch => {
 
 Logger is middleware that can show the previous state, action, next state, and relevant timestamps every time an action is fired. A sample picture is provided below:
 
-<img src="https://i.imgur.com/AvkhIVw.png" alt="Drawing" style="width: 400px;"/>
+<img src="https://i.imgur.com/AvkhIVw.png" alt="sample picture of relux logger" style="width: 400px;"/>
 
 NB: when using multiple middleware, ```logger``` should be the first argument passed into ```applyMiddleware```.
 
@@ -99,6 +115,8 @@ Takes in two functions and returns a function. The returned function must be inv
 
 * ```mapStateToProps(state, props)```: returns an object with key-value pairs that further define props on the React component based on the Store's state.
 * ```mapDispatchToProps(dispatch, props)```: returns an object with key-value pairs that define dispatchable actions to be props of the React component.
+
+If one of the arguments is not needed, you must explicitly pass in ```null``` as an argument instead.
 
 Example:
 ```JavaScript
