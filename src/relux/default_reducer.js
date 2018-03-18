@@ -24,14 +24,30 @@
 // }
 // where the callback is handed a deep copy of the oldState and action
 
+export function defaultReducer(actions) {
+  return (state, action) => {
+    Object.freeze(state);
+    const cbk = actions[action] || defaultCallback;
+    return cbk(deepCopy(state), action);
+  };
+}
+
 function defaultCallback(state, _) {
   return state;
 }
 
-function defaultReducer(actions) {
-  return (state, action) => {
-    Object.freeze(state);
-    const cbk = actions[action] || defaultCallback;
-    return cbk(state, action);
-  };
+function replace(state, action) {
+  
+}
+
+// UTILS =====================
+
+function deepCopy(o) {
+  let output, v, key;
+  output = Array.isArray(o) ? [] : {};
+  for (key in o) {
+    v = o[key];
+    output[key] = (typeof v === "object") ? deepCopy(v) : v;
+  }
+  return output;
 }

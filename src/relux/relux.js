@@ -117,18 +117,30 @@ const actionGroupStyle = 'color: grey';
 const prevStateStyle = 'color: grey; font-weight: 700';
 const actionStyle = 'color: #47b0ed; font-weight: 700';
 const nextStateStyle = 'color: #2ca032; font-weight: 700';
+const errorStyle = 'color: red; font-weight: 700';
 
 export const logger = (dispatch, store) => {
   function newDispatch(action) {
     const startTime = new Date();
     const oldState = store.getState(); // getState is a deep copy
-    dispatch(action);
+    let error;
+    try {
+      dispatch(action);
+    } catch (e) {
+      error = e;
+    }
     const endTime = new Date();
     console.group("%caction", actionGroupStyle, action.type, `@${getTimeFromDate(endTime)} (in ${endTime - startTime} ms)`);
     console.log("%cprev state: ", prevStateStyle, oldState);
     console.log("%caction:     ", actionStyle, action);
-    console.log("%cnext state: ", nextStateStyle, store.getState());
-    console.groupEnd();
+    if (error) {
+      console.log("%cerror:      ", errorStyle, error);
+      console.groupEnd();
+      throw error;
+    } else {
+      console.log("%cnext state: ", nextStateStyle, store.getState());
+      console.groupEnd();
+    }
   }
   return newDispatch;
 };
@@ -172,7 +184,6 @@ export const connect = (mapState, mapDispatch) => ReactComponent => ownProps => 
   
   const finalProps = Object.assign({}, ownProps, mappedProps);
   return React.createElement(ReactComponent, finalProps);
-  // return <ReactComponent {...finalProps} />;
 };
 
 // UTIL =============================================
