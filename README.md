@@ -111,6 +111,8 @@ NB: when using multiple middleware, ```logger``` should be the first argument pa
 
 #### ```connect(mapStateToProps, mapDispatchToProps)```
 
+(WIP - not yet functional)
+
 Takes in two functions and returns a function. The returned function must be invoked with the react component that is to receive the props. If you don't need one of the two arguments, pass in the keyword ```null``` instead of ```undefined```.
 
 * ```mapStateToProps(state, props)```: returns an object with key-value pairs that further define props on the React component based on the Store's state.
