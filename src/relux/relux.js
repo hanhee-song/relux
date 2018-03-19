@@ -48,12 +48,14 @@ class Store {
     this.state = state;
     this.reducers = reducer;
     this.middleware = middleware; // array
+    this.changeListeners = new Set();
     this._setUpMiddleware();
     this.dispatch({ type: "RELUX/INIT" });
   }
   
   getState() {
     return deepCopy(this.state);
+    // return this.state;
   }
   
   dispatch(action) {
@@ -61,24 +63,52 @@ class Store {
       throw `Dispatch expected an object, received: ${action}`;
     }
     const newState = deepCopy(this.reducers);
-    const mapReducersToState = (act, reducers, state) => {
-      Object.keys(reducers).forEach(key => {
-        const val = reducers[key];
-        let stateSlice;
-          try {
-            stateSlice = state[key];
-          } catch (e) {
-            stateSlice = undefined;
-          }
-        if (typeof val === "function") {
-          reducers[key] = val(stateSlice, act);
-        } else if (typeof val === "object") {
-          mapReducersToState(act, val, stateSlice);
-        }
-      });
-    };
-    mapReducersToState(action, newState, this.state);
+    this._mapReducersToState(action, newState, this.state);
     this.state = newState;
+    
+    // this._activateChangeListeners();
+    return action;
+  }
+  
+  addChangeListener(cbk) {
+    window.aoeu = cbk;
+    this.changeListeners.add(cbk);
+  }
+  
+  removeChangeListener(cbk) {
+    this.changeListeners.delete(cbk);
+  }
+  
+  getProps(mapState, mapDispatch, ownProps) {
+    let mappedProps;
+    mappedProps = Object.assign(
+      mapState(this.getState(), ownProps),
+      mapDispatch(this.dispatch.bind(this), ownProps)
+    );
+    return Object.assign({}, deepCopy(ownProps), deepCopy(mappedProps));
+  }
+  
+  _activateChangeListeners() {
+    this.changeListeners.forEach((cbk) => {
+      cbk();
+    });
+  }
+  
+  _mapReducersToState(act, reducers, state) {
+    Object.keys(reducers).forEach(key => {
+      const val = reducers[key];
+      let stateSlice;
+      try {
+        stateSlice = state[key];
+      } catch (e) {
+        stateSlice = undefined;
+      }
+      if (typeof val === "function") {
+        reducers[key] = val(stateSlice, act);
+      } else if (typeof val === "object") {
+        this._mapReducersToState(act, val, stateSlice);
+      }
+    });
   }
   
   _setUpMiddleware() {
@@ -99,12 +129,12 @@ class Store {
 // For all thunks, we have to pass in the dispatch rather than using
 // store's dispatch. Otherwise, we get bad recursion
 
-export const thunk = (dispatch, store) => {
+export const thunk = (dispatch) => {
   function newDispatch(action) {
     if (typeof action === "function") {
-      action(dispatch);
+      return action(dispatch);
     } else {
-      dispatch(action);
+      return dispatch(action);
     }
   }
   return newDispatch;
@@ -151,8 +181,6 @@ export const logger = (dispatch, store) => {
 import React from 'react';
 
 export const connect = (mapState, mapDispatch) => ReactComponent => ownProps => {
-  let mappedProps;
-  
   if (typeof ReactComponent !== "function") {
     throw `The function returned by connect expected a Component, got: ${typeof ReactComponent} ${ReactComponent}`;
   }
@@ -169,22 +197,38 @@ export const connect = (mapState, mapDispatch) => ReactComponent => ownProps => 
   mapState = mapState === null ? () => new Object() : mapState;
   mapDispatch = mapDispatch === null ? () => new Object() : mapDispatch;
   
-  try {
-    mappedProps = Object.assign(
-      mapState($store.getState(), ownProps),
-      mapDispatch($store.dispatch.bind($store), ownProps)
-    );
-  } catch (e) {
-    if (e.toString() === "TypeError: Cannot read property 'getState' of undefined") {
-      throw "- Store does not exist. You probably forgot to create it.";
-    } else {
-      console.log(e);
+  debugger;
+  return createWrapper(ReactComponent, mapState, mapDispatch, ownProps);
+};
+
+function createWrapper(ReactComponent, mapState, mapDispatch, ownProps) {
+  class StoreConnection extends React.Component {
+    constructor(props) {
+      super(props);
+      console.log(ReactComponent.name);
+      debugger;
+      this.state = $store.getProps(mapState, mapDispatch, this.props);
+      this.handleStoresChanged = this.handleStoresChanged.bind(this);
+    }
+    
+    componentDidMount() {
+      $store.addChangeListener(this.handleStoresChanged);
+    }
+    
+    componentWillUnmount() {
+      $store.removeChangeListener(this.handleStoresChanged);
+    }
+    
+    handleStoresChanged() {
+      this.setState($store.getProps(mapState, mapDispatch, this.props));
+    }
+    
+    render () {
+      return <ReactComponent {...this.state} />;
     }
   }
-  
-  const finalProps = Object.assign({}, ownProps, mappedProps);
-  return React.createElement(ReactComponent, finalProps);
-};
+  return React.createElement(StoreConnection, ownProps);
+}
 
 // UTIL =============================================
 
